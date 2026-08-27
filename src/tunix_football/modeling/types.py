@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 from math import isfinite
-from typing import Protocol, Sequence
+from typing import Protocol
 from uuid import UUID
 
 Scoreline = tuple[int, int]
