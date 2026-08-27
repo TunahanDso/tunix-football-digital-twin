@@ -25,20 +25,28 @@ from tunix_football.db.models import (
 )
 
 
-class CanonicalImportConflict(ValueError):
-    """Raised when a deterministic logical key resolves to conflicting truth."""
-
-
 @dataclass(slots=True)
 class ImportSummary:
     inserted: int = 0
     existing: int = 0
+    conflicting: int = 0
 
     def mark(self, *, existed: bool) -> None:
         if existed:
             self.existing += 1
         else:
             self.inserted += 1
+
+    def mark_conflict(self) -> None:
+        self.conflicting += 1
+
+
+class CanonicalImportConflict(ValueError):
+    """Raised when a deterministic logical key resolves to conflicting truth."""
+
+    def __init__(self, message: str, *, summary: ImportSummary) -> None:
+        super().__init__(message)
+        self.summary = summary
 
 
 class CanonicalHistoryWriter:
@@ -51,10 +59,14 @@ class CanonicalHistoryWriter:
         competition: CompetitionSeed,
         history: LoadedHistoricalSeason,
     ) -> ImportSummary:
-        if history.competition.key != competition.key:
-            raise CanonicalImportConflict("history competition does not match seed")
-
         summary = ImportSummary()
+        if history.competition.key != competition.key:
+            summary.mark_conflict()
+            raise CanonicalImportConflict(
+                "history competition does not match seed",
+                summary=summary,
+            )
+
         async with self._session.begin():
             await self._persist_competitions(competition, summary)
             await self._persist_clubs(competition, summary)
@@ -111,6 +123,7 @@ class CanonicalHistoryWriter:
                     f"competition:{key}",
                     existing,
                     expected,
+                    summary,
                 )
                 summary.mark(existed=True)
 
@@ -138,7 +151,7 @@ class CanonicalHistoryWriter:
                 )
                 summary.mark(existed=False)
             else:
-                self._assert_fields(f"club:{club.key}", existing, expected)
+                self._assert_fields(f"club:{club.key}", existing, expected, summary)
                 summary.mark(existed=True)
 
     async def _persist_entity(
@@ -162,6 +175,7 @@ class CanonicalHistoryWriter:
             f"canonical_entity:{entity_id}",
             existing,
             {"entity_type": entity_type, "retired_at": None},
+            summary,
         )
         summary.mark(existed=True)
 
@@ -198,6 +212,7 @@ class CanonicalHistoryWriter:
                 f"season:{competition.key}:{season.key}",
                 existing,
                 expected_identity,
+                summary,
             )
             existing.rules = rules_json
             summary.mark(existed=True)
@@ -233,6 +248,7 @@ class CanonicalHistoryWriter:
                 f"season_rule:{competition.key}:{season.key}:{season.rules.version}",
                 rule,
                 rule_expected,
+                summary,
             )
             summary.mark(existed=True)
 
@@ -274,6 +290,7 @@ class CanonicalHistoryWriter:
                     f"participation:{competition.key}:{season.key}:{participant.club_key}",
                     existing_participation,
                     expected,
+                    summary,
                 )
                 summary.mark(existed=True)
 
@@ -311,7 +328,12 @@ class CanonicalHistoryWriter:
                 summary.mark(existed=False)
                 await self._session.flush()
             else:
-                self._assert_fields(f"match:{timeline.fixture_key}", existing_match, immutable)
+                self._assert_fields(
+                    f"match:{timeline.fixture_key}",
+                    existing_match,
+                    immutable,
+                    summary,
+                )
                 summary.mark(existed=True)
 
             for observation in timeline.observations:
@@ -359,6 +381,7 @@ class CanonicalHistoryWriter:
                         f"match_revision:{timeline.fixture_key}:{observation.revision}",
                         existing_revision,
                         expected_revision,
+                        summary,
                     )
                     summary.mark(existed=True)
 
@@ -385,11 +408,20 @@ class CanonicalHistoryWriter:
         return canonical_id("competition", key)
 
     @staticmethod
-    def _assert_fields(label: str, record: object, expected: dict[str, Any]) -> None:
+    def _assert_fields(
+        label: str,
+        record: object,
+        expected: dict[str, Any],
+        summary: ImportSummary,
+    ) -> None:
         conflicts = {
             field: (getattr(record, field), value)
             for field, value in expected.items()
             if getattr(record, field) != value
         }
         if conflicts:
-            raise CanonicalImportConflict(f"conflicting replay for {label}: {conflicts}")
+            summary.mark_conflict()
+            raise CanonicalImportConflict(
+                f"conflicting replay for {label}: {conflicts}",
+                summary=summary,
+            )
