@@ -1,0 +1,80 @@
+{
+  "format_version": 1,
+  "key": "tr_super_lig",
+  "name": "Süper Lig",
+  "country_code": "TUR",
+  "competition_type": "league",
+  "timezone": "Europe/Istanbul",
+  "clubs": [
+    {"key": "adana_demirspor", "name": "Adana Demirspor", "country_code": "TUR"},
+    {"key": "alanyaspor", "name": "Alanyaspor", "country_code": "TUR"},
+    {"key": "antalyaspor", "name": "Antalyaspor", "country_code": "TUR"},
+    {"key": "basaksehir", "name": "İstanbul Başakşehir FK", "country_code": "TUR"},
+    {"key": "besiktas", "name": "Beşiktaş", "country_code": "TUR"},
+    {"key": "bodrum_fk", "name": "Bodrum FK", "country_code": "TUR"},
+    {"key": "eyupspor", "name": "Eyüpspor", "country_code": "TUR"},
+    {"key": "fenerbahce", "name": "Fenerbahçe", "country_code": "TUR"},
+    {"key": "galatasaray", "name": "Galatasaray", "country_code": "TUR"},
+    {"key": "gaziantep_fk", "name": "Gaziantep FK", "country_code": "TUR"},
+    {"key": "goztepe", "name": "Göztepe", "country_code": "TUR"},
+    {"key": "hatayspor", "name": "Hatayspor", "country_code": "TUR"},
+    {"key": "kasimpasa", "name": "Kasımpaşa", "country_code": "TUR"},
+    {"key": "kayserispor", "name": "Kayserispor", "country_code": "TUR"},
+    {"key": "konyaspor", "name": "Konyaspor", "country_code": "TUR"},
+    {"key": "rizespor", "name": "Çaykur Rizespor", "country_code": "TUR"},
+    {"key": "samsunspor", "name": "Samsunspor", "country_code": "TUR"},
+    {"key": "sivasspor", "name": "Sivasspor", "country_code": "TUR"},
+    {"key": "trabzonspor", "name": "Trabzonspor", "country_code": "TUR"}
+  ],
+  "seasons": [
+    {
+      "key": "2024-25",
+      "starts_on": "2024-08-09",
+      "ends_on": "2025-06-01",
+      "rules": {
+        "version": 1,
+        "points": {"win": 3, "draw": 1, "loss": 0},
+        "ranking": [
+          "points",
+          "head_to_head_points",
+          "head_to_head_goal_difference",
+          "head_to_head_goals",
+          "goal_difference",
+          "goals_for",
+          "drawing_of_lots"
+        ],
+        "round_robin_legs": 2,
+        "relegation_places": 4,
+        "promotion_places_into_season": 3,
+        "notes": [
+          "Nineteen clubs participated, so one club had a bye in each matchweek.",
+          "Eyüpspor and Göztepe were promoted directly from the 2023-24 1. Lig; Bodrum FK was promoted through the play-offs.",
+          "Adana Demirspor, Hatayspor, Sivasspor and Bodrum FK were relegated after the season.",
+          "Canonical club names intentionally omit season-specific commercial title sponsors where possible.",
+          "Official authority: Türkiye Futbol Federasyonu 2024-25 Süper Lig fixture/table, season statute and final registration decision."
+        ]
+      },
+      "participants": [
+        {"club_key": "adana_demirspor", "entry": "continuing", "exit": "relegated", "to_competition_key": "tr_1_lig"},
+        {"club_key": "alanyaspor", "entry": "continuing", "exit": "continuing"},
+        {"club_key": "antalyaspor", "entry": "continuing", "exit": "continuing"},
+        {"club_key": "basaksehir", "entry": "continuing", "exit": "continuing"},
+        {"club_key": "besiktas", "entry": "continuing", "exit": "continuing"},
+        {"club_key": "bodrum_fk", "entry": "promoted", "exit": "relegated", "from_competition_key": "tr_1_lig", "to_competition_key": "tr_1_lig"},
+        {"club_key": "eyupspor", "entry": "promoted", "exit": "continuing", "from_competition_key": "tr_1_lig"},
+        {"club_key": "fenerbahce", "entry": "continuing", "exit": "continuing"},
+        {"club_key": "galatasaray", "entry": "continuing", "exit": "continuing"},
+        {"club_key": "gaziantep_fk", "entry": "continuing", "exit": "continuing"},
+        {"club_key": "goztepe", "entry": "promoted", "exit": "continuing", "from_competition_key": "tr_1_lig"},
+        {"club_key": "hatayspor", "entry": "continuing", "exit": "relegated", "to_competition_key": "tr_1_lig"},
+        {"club_key": "kasimpasa", "entry": "continuing", "exit": "continuing"},
+        {"club_key": "kayserispor", "entry": "continuing", "exit": "continuing"},
+        {"club_key": "konyaspor", "entry": "continuing", "exit": "continuing"},
+        {"club_key": "rizespor", "entry": "continuing", "exit": "continuing"},
+        {"club_key": "samsunspor", "entry": "continuing", "exit": "continuing"},
+        {"club_key": "sivasspor", "entry": "continuing", "exit": "relegated", "to_competition_key": "tr_1_lig"},
+        {"club_key": "trabzonspor", "entry": "continuing", "exit": "continuing"}
+      ]
+    }
+  ]
+}
