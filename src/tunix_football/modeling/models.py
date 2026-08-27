@@ -79,7 +79,7 @@ class EloModel:
 
     def _expected_home_score(self, home_rating: float, away_rating: float) -> float:
         gap = (home_rating + self._home_advantage) - away_rating
-        return 1.0 / (1.0 + 10.0 ** (-gap / 400.0))
+        return float(1.0 / (1.0 + 10.0 ** (-gap / 400.0)))
 
     @staticmethod
     def _actual_home_score(match: HistoricalMatch) -> float:
@@ -243,8 +243,21 @@ class IndependentPoissonModel:
 class DixonColesModel(IndependentPoissonModel):
     key = "dixon_coles"
 
-    def __init__(self, *, rho: float = -0.08, **kwargs: float | int) -> None:
-        super().__init__(**kwargs)
+    def __init__(
+        self,
+        *,
+        rho: float = -0.08,
+        smoothing_matches: float = 3.0,
+        max_goals: int = 8,
+        min_lambda: float = 0.05,
+        max_lambda: float = 5.0,
+    ) -> None:
+        super().__init__(
+            smoothing_matches=smoothing_matches,
+            max_goals=max_goals,
+            min_lambda=min_lambda,
+            max_lambda=max_lambda,
+        )
         if not -0.5 < rho < 0.5:
             raise ValueError("rho must stay in a conservative correction range")
         self._rho = rho
