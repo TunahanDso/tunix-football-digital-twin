@@ -39,18 +39,29 @@ def upgrade() -> None:
             name="ck_entity_aliases_valid_time_window",
         ),
         sa.ForeignKeyConstraint(
-            ["canonical_entity_id"], ["canonical_entities.id"],
+            ["canonical_entity_id"],
+            ["canonical_entities.id"],
             name="fk_entity_aliases_canonical_entity_id_canonical_entities",
             ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
-            ["source_id"], ["sources.id"],
-            name="fk_entity_aliases_source_id_sources", ondelete="SET NULL",
+            ["source_id"],
+            ["sources.id"],
+            name="fk_entity_aliases_source_id_sources",
+            ondelete="SET NULL",
         ),
         sa.PrimaryKeyConstraint("id", name="pk_entity_aliases"),
     )
-    op.create_index("ix_entity_aliases_lookup", "entity_aliases", ["entity_type", "normalized_alias"])
-    op.create_index("ix_entity_aliases_entity", "entity_aliases", ["canonical_entity_id", "valid_from"])
+    op.create_index(
+        "ix_entity_aliases_lookup",
+        "entity_aliases",
+        ["entity_type", "normalized_alias"],
+    )
+    op.create_index(
+        "ix_entity_aliases_entity",
+        "entity_aliases",
+        ["canonical_entity_id", "valid_from"],
+    )
 
     op.create_table(
         "entity_resolution_decisions",
@@ -74,26 +85,34 @@ def upgrade() -> None:
             name="ck_entity_resolution_decisions_top_score_probability",
         ),
         sa.ForeignKeyConstraint(
-            ["raw_record_id"], ["raw_source_records.record_id"],
+            ["raw_record_id"],
+            ["raw_source_records.record_id"],
             name="fk_entity_resolution_decisions_raw_record_id_raw_source_records",
             ondelete="SET NULL",
         ),
         sa.ForeignKeyConstraint(
-            ["resolved_entity_id"], ["canonical_entities.id"],
+            ["resolved_entity_id"],
+            ["canonical_entities.id"],
             name="fk_entity_resolution_decisions_resolved_entity_id_canonical_entities",
             ondelete="SET NULL",
         ),
         sa.ForeignKeyConstraint(
-            ["source_id"], ["sources.id"],
-            name="fk_entity_resolution_decisions_source_id_sources", ondelete="RESTRICT",
+            ["source_id"],
+            ["sources.id"],
+            name="fk_entity_resolution_decisions_source_id_sources",
+            ondelete="RESTRICT",
         ),
         sa.PrimaryKeyConstraint("decision_id", name="pk_entity_resolution_decisions"),
     )
     op.create_index(
-        "ix_resolution_decisions_source_external", "entity_resolution_decisions", ["source_id", "external_id"]
+        "ix_resolution_decisions_source_external",
+        "entity_resolution_decisions",
+        ["source_id", "external_id"],
     )
     op.create_index(
-        "ix_resolution_decisions_resolved", "entity_resolution_decisions", ["resolved_entity_id", "decided_at"]
+        "ix_resolution_decisions_resolved",
+        "entity_resolution_decisions",
+        ["resolved_entity_id", "decided_at"],
     )
 
     op.create_table(
@@ -106,15 +125,21 @@ def upgrade() -> None:
         sa.Column("resolution_notes", sa.Text(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(
-            ["decision_id"], ["entity_resolution_decisions.decision_id"],
+            ["decision_id"],
+            ["entity_resolution_decisions.decision_id"],
             name="fk_entity_resolution_review_cases_decision_id_entity_resolution_decisions",
             ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("case_id", name="pk_entity_resolution_review_cases"),
-        sa.UniqueConstraint("decision_id", name="uq_entity_resolution_review_cases_decision_id"),
+        sa.UniqueConstraint(
+            "decision_id",
+            name="uq_entity_resolution_review_cases_decision_id",
+        ),
     )
     op.create_index(
-        "ix_resolution_review_cases_status", "entity_resolution_review_cases", ["status", "created_at"]
+        "ix_resolution_review_cases_status",
+        "entity_resolution_review_cases",
+        ["status", "created_at"],
     )
 
     op.create_table(
@@ -128,29 +153,45 @@ def upgrade() -> None:
         sa.Column("reason", sa.JSON(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(
-            ["subject_entity_id"], ["canonical_entities.id"],
+            ["subject_entity_id"],
+            ["canonical_entities.id"],
             name="fk_entity_identity_events_subject_entity_id_canonical_entities",
             ondelete="RESTRICT",
         ),
         sa.ForeignKeyConstraint(
-            ["target_entity_id"], ["canonical_entities.id"],
+            ["target_entity_id"],
+            ["canonical_entities.id"],
             name="fk_entity_identity_events_target_entity_id_canonical_entities",
             ondelete="RESTRICT",
         ),
         sa.PrimaryKeyConstraint("event_id", name="pk_entity_identity_events"),
     )
     op.create_index(
-        "ix_entity_identity_events_subject", "entity_identity_events", ["subject_entity_id", "occurred_at"]
+        "ix_entity_identity_events_subject",
+        "entity_identity_events",
+        ["subject_entity_id", "occurred_at"],
     )
 
 
 def downgrade() -> None:
-    op.drop_index("ix_entity_identity_events_subject", table_name="entity_identity_events")
+    op.drop_index(
+        "ix_entity_identity_events_subject",
+        table_name="entity_identity_events",
+    )
     op.drop_table("entity_identity_events")
-    op.drop_index("ix_resolution_review_cases_status", table_name="entity_resolution_review_cases")
+    op.drop_index(
+        "ix_resolution_review_cases_status",
+        table_name="entity_resolution_review_cases",
+    )
     op.drop_table("entity_resolution_review_cases")
-    op.drop_index("ix_resolution_decisions_resolved", table_name="entity_resolution_decisions")
-    op.drop_index("ix_resolution_decisions_source_external", table_name="entity_resolution_decisions")
+    op.drop_index(
+        "ix_resolution_decisions_resolved",
+        table_name="entity_resolution_decisions",
+    )
+    op.drop_index(
+        "ix_resolution_decisions_source_external",
+        table_name="entity_resolution_decisions",
+    )
     op.drop_table("entity_resolution_decisions")
     op.drop_index("ix_entity_aliases_entity", table_name="entity_aliases")
     op.drop_index("ix_entity_aliases_lookup", table_name="entity_aliases")
