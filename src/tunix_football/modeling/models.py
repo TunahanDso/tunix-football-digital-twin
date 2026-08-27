@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from math import exp, factorial
-from typing import Sequence
 from uuid import UUID
 
 from tunix_football.modeling.types import (
