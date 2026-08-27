@@ -83,7 +83,10 @@ def test_fixture_stream_rejects_non_participant_club(tmp_path: Path) -> None:
     loader = HistoricalCompetitionLoader()
     competition = loader.load_seed(SEED_PATH)
     payload = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
-    payload["observations"][0]["away_club_key"] = "not_in_this_season"
+    target_key = "2024-25-galatasaray-hatayspor-01"
+    for observation in payload["observations"]:
+        if observation["fixture_key"] == target_key:
+            observation["away_club_key"] = "not_in_this_season"
     path = tmp_path / "invalid.json"
     path.write_text(json.dumps(payload), encoding="utf-8")
 
