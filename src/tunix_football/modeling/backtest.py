@@ -5,14 +5,17 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from statistics import fmean
+from uuid import UUID
 
 from tunix_football.modeling.metrics import (
     MatchMetricVector,
+    PairedBootstrapDelta,
     calibration_bins,
     evaluate_prediction,
     expected_calibration_error,
     log_loss,
     multiclass_brier,
+    paired_bootstrap_delta,
     ranked_probability_score,
 )
 from tunix_football.modeling.reproducibility import data_snapshot_hash, stable_hash
@@ -33,12 +36,17 @@ class BacktestConfig:
     lead_time: timedelta
     min_train_matches: int = 50
     seed: int = 0
+    bootstrap_samples: int = 1000
 
     def __post_init__(self) -> None:
         if self.lead_time <= timedelta(0):
             raise ValueError("lead_time must be positive")
         if self.min_train_matches < 1:
             raise ValueError("min_train_matches must be positive")
+        if self.seed < 0:
+            raise ValueError("seed must be nonnegative")
+        if self.bootstrap_samples < 100:
+            raise ValueError("bootstrap_samples must be at least 100")
 
 
 @dataclass(frozen=True, slots=True)
@@ -77,6 +85,7 @@ class BacktestReport:
     observations: tuple[BacktestObservation, ...]
     model_metrics: AggregateMetrics
     market_metrics: AggregateMetrics | None
+    rps_delta_vs_market: PairedBootstrapDelta | None
 
     @property
     def market_coverage(self) -> int:
@@ -162,12 +171,14 @@ class WalkForwardBacktester:
 
         model_aggregate = self._aggregate_model(observations)
         market_aggregate = self._aggregate_market(observations)
+        market_delta = self._paired_rps_delta(observations)
         experiment_config = {
             "model_key": model_key,
             "model_config": model_config,
             "lead_time_seconds": int(self._config.lead_time.total_seconds()),
             "min_train_matches": self._config.min_train_matches,
             "seed": self._config.seed,
+            "bootstrap_samples": self._config.bootstrap_samples,
             "market_alignment": "latest_snapshot_at_or_before_prediction_cutoff",
         }
         return BacktestReport(
@@ -180,13 +191,14 @@ class WalkForwardBacktester:
             observations=tuple(observations),
             model_metrics=model_aggregate,
             market_metrics=market_aggregate,
+            rps_delta_vs_market=market_delta,
         )
 
     @staticmethod
     def _group_market_snapshots(
         snapshots: Sequence[MarketSnapshot],
-    ) -> dict[object, tuple[MarketSnapshot, ...]]:
-        grouped: defaultdict[object, list[MarketSnapshot]] = defaultdict(list)
+    ) -> dict[UUID, tuple[MarketSnapshot, ...]]:
+        grouped: defaultdict[UUID, list[MarketSnapshot]] = defaultdict(list)
         for snapshot in snapshots:
             grouped[snapshot.match_id].append(snapshot)
         return {
@@ -252,6 +264,26 @@ class WalkForwardBacktester:
         ]
         outcomes = [item.match.outcome_index for item in aligned]
         return cls._aggregate(metrics, probabilities, outcomes)
+
+    def _paired_rps_delta(
+        self,
+        observations: Sequence[BacktestObservation],
+    ) -> PairedBootstrapDelta | None:
+        aligned = [item for item in observations if item.market_metrics is not None]
+        if not aligned:
+            return None
+        model_scores = [item.model_metrics.ranked_probability_score for item in aligned]
+        market_scores = [
+            item.market_metrics.ranked_probability_score
+            for item in aligned
+            if item.market_metrics is not None
+        ]
+        return paired_bootstrap_delta(
+            model_scores,
+            market_scores,
+            seed=self._config.seed,
+            samples=self._config.bootstrap_samples,
+        )
 
     @staticmethod
     def _aggregate(
