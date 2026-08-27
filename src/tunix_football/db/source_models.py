@@ -14,6 +14,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
     Uuid,
 )
 from sqlalchemy.orm import Mapped, mapped_column
@@ -67,6 +68,11 @@ class RawSourceRecord(CreatedAtMixin, Base):
 
     __tablename__ = "raw_source_records"
     __table_args__ = (
+        UniqueConstraint(
+            "source_id",
+            "evidence_key",
+            name="uq_raw_source_records_source_evidence_key",
+        ),
         Index("ix_raw_source_records_source_observed", "source_id", "observed_at"),
         Index("ix_raw_source_records_hash", "content_sha256"),
     )
@@ -82,6 +88,7 @@ class RawSourceRecord(CreatedAtMixin, Base):
         ForeignKey("collector_runs.run_id", ondelete="CASCADE"),
         nullable=False,
     )
+    evidence_key: Mapped[str | None] = mapped_column(String(256))
     source_entity_id: Mapped[str | None] = mapped_column(String(256))
     observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
