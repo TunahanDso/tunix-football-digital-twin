@@ -1,4 +1,4 @@
-"""Add stable per-source identity for immutable raw evidence.
+"""Add stable per-source identities for collector runs and raw evidence.
 
 Revision ID: 0007_evidence_identity
 Revises: 0006_rule_timing
@@ -18,6 +18,15 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     op.add_column(
+        "collector_runs",
+        sa.Column("run_key", sa.String(length=160), nullable=True),
+    )
+    op.create_unique_constraint(
+        "uq_collector_runs_source_run_key",
+        "collector_runs",
+        ["source_id", "run_key"],
+    )
+    op.add_column(
         "raw_source_records",
         sa.Column("evidence_key", sa.String(length=256), nullable=True),
     )
@@ -35,3 +44,9 @@ def downgrade() -> None:
         type_="unique",
     )
     op.drop_column("raw_source_records", "evidence_key")
+    op.drop_constraint(
+        "uq_collector_runs_source_run_key",
+        "collector_runs",
+        type_="unique",
+    )
+    op.drop_column("collector_runs", "run_key")
