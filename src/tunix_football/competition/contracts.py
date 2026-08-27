@@ -159,9 +159,11 @@ class FixtureObservation(BaseModel):
             raise ValueError("observed_at must be timezone-aware")
         if self.kickoff_at is not None and self.kickoff_at.tzinfo is None:
             raise ValueError("kickoff_at must be timezone-aware")
-        if self.status in {FixtureStatus.FINISHED, FixtureStatus.AWARDED}:
-            if self.home_score is None or self.away_score is None:
-                raise ValueError("finished and awarded fixtures require a score")
+        if (
+            self.status in {FixtureStatus.FINISHED, FixtureStatus.AWARDED}
+            and (self.home_score is None or self.away_score is None)
+        ):
+            raise ValueError("finished and awarded fixtures require a score")
         if self.status in {
             FixtureStatus.SCHEDULED,
             FixtureStatus.POSTPONED,
