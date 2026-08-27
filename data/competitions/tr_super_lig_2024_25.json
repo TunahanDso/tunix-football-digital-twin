@@ -5,6 +5,9 @@
   "country_code": "TUR",
   "competition_type": "league",
   "timezone": "Europe/Istanbul",
+  "related_competitions": [
+    {"key": "tr_1_lig", "name": "1. Lig", "country_code": "TUR", "competition_type": "league"}
+  ],
   "clubs": [
     {"key": "adana_demirspor", "name": "Adana Demirspor", "country_code": "TUR"},
     {"key": "alanyaspor", "name": "Alanyaspor", "country_code": "TUR"},
