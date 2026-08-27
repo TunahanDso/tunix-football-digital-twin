@@ -14,6 +14,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
     Uuid,
 )
 from sqlalchemy.orm import Mapped, mapped_column
@@ -42,6 +43,11 @@ class SourceConfigRecord(CreatedAtMixin, Base):
 class CollectorRunRecord(CreatedAtMixin, Base):
     __tablename__ = "collector_runs"
     __table_args__ = (
+        UniqueConstraint(
+            "source_id",
+            "run_key",
+            name="uq_collector_runs_source_run_key",
+        ),
         CheckConstraint("records_count >= 0", name="records_count_nonnegative"),
         Index("ix_collector_runs_source_started", "source_id", "started_at"),
     )
@@ -52,6 +58,7 @@ class CollectorRunRecord(CreatedAtMixin, Base):
         ForeignKey("sources.id", ondelete="RESTRICT"),
         nullable=False,
     )
+    run_key: Mapped[str | None] = mapped_column(String(160))
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     status: Mapped[str] = mapped_column(String(24), nullable=False)
@@ -67,6 +74,11 @@ class RawSourceRecord(CreatedAtMixin, Base):
 
     __tablename__ = "raw_source_records"
     __table_args__ = (
+        UniqueConstraint(
+            "source_id",
+            "evidence_key",
+            name="uq_raw_source_records_source_evidence_key",
+        ),
         Index("ix_raw_source_records_source_observed", "source_id", "observed_at"),
         Index("ix_raw_source_records_hash", "content_sha256"),
     )
@@ -82,6 +94,7 @@ class RawSourceRecord(CreatedAtMixin, Base):
         ForeignKey("collector_runs.run_id", ondelete="CASCADE"),
         nullable=False,
     )
+    evidence_key: Mapped[str | None] = mapped_column(String(256))
     source_entity_id: Mapped[str | None] = mapped_column(String(256))
     observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

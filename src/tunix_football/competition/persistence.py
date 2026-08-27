@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC
+from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
@@ -9,7 +10,12 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from tunix_football.canonical_ids import canonical_id
+from tunix_football.collectors.types import CollectorRunStatus
 from tunix_football.competition.contracts import CompetitionSeed, SeasonSeed
+from tunix_football.competition.evidence import (
+    HistoricalEvidenceManifest,
+    HistoricalEvidenceRecord,
+)
 from tunix_football.competition.loader import LoadedHistoricalSeason
 from tunix_football.db.competition_models import (
     MatchRevisionRecord,
@@ -22,7 +28,15 @@ from tunix_football.db.models import (
     Competition,
     CompetitionSeason,
     Match,
+    Source,
 )
+from tunix_football.db.source_models import (
+    CollectorRunRecord,
+    RawSourceRecord,
+    SourceConfigRecord,
+)
+
+EvidenceBindingMap = dict[tuple[str, int], tuple[UUID, UUID]]
 
 
 @dataclass(slots=True)
@@ -58,6 +72,7 @@ class CanonicalHistoryWriter:
         *,
         competition: CompetitionSeed,
         history: LoadedHistoricalSeason,
+        evidence: HistoricalEvidenceManifest | None = None,
     ) -> ImportSummary:
         summary = ImportSummary()
         if history.competition.key != competition.key:
@@ -67,6 +82,8 @@ class CanonicalHistoryWriter:
                 summary=summary,
             )
 
+        evidence_records = evidence.bindings_for(history) if evidence is not None else None
+
         async with self._session.begin():
             await self._persist_competitions(competition, summary)
             await self._persist_clubs(competition, summary)
@@ -74,7 +91,20 @@ class CanonicalHistoryWriter:
             for season in competition.seasons:
                 await self._persist_season(competition, season, summary)
             await self._session.flush()
-            await self._persist_history(history, summary)
+
+            evidence_bindings: EvidenceBindingMap = {}
+            if evidence is not None and evidence_records is not None:
+                evidence_bindings = await self._persist_evidence(
+                    evidence,
+                    evidence_records,
+                    summary,
+                )
+
+            await self._persist_history(
+                history,
+                summary,
+                evidence_bindings=evidence_bindings,
+            )
         return summary
 
     async def _persist_competitions(
@@ -294,10 +324,229 @@ class CanonicalHistoryWriter:
                 )
                 summary.mark(existed=True)
 
+    async def _persist_evidence(
+        self,
+        manifest: HistoricalEvidenceManifest,
+        records_by_observation: dict[tuple[str, int], HistoricalEvidenceRecord],
+        summary: ImportSummary,
+    ) -> EvidenceBindingMap:
+        source_id = canonical_id("source", manifest.source.key)
+        run_id = canonical_id(
+            "collector_run",
+            f"{manifest.source.key}:{manifest.run_key}",
+        )
+        await self._persist_source(source_id, manifest, summary)
+        await self._session.flush()
+        await self._persist_source_config(source_id, manifest, summary)
+        await self._persist_collector_run(source_id, run_id, manifest, summary)
+        await self._session.flush()
+
+        record_ids: dict[str, UUID] = {}
+        for record in manifest.records:
+            record_id = canonical_id(
+                "raw_evidence",
+                f"{manifest.source.key}:{record.evidence_key}",
+            )
+            await self._persist_raw_record(
+                source_id,
+                run_id,
+                record_id,
+                manifest,
+                record,
+                summary,
+            )
+            record_ids[record.evidence_key] = record_id
+
+        return {
+            observation_key: (
+                source_id,
+                record_ids[record.evidence_key],
+            )
+            for observation_key, record in records_by_observation.items()
+        }
+
+    async def _persist_source(
+        self,
+        source_id: UUID,
+        manifest: HistoricalEvidenceManifest,
+        summary: ImportSummary,
+    ) -> None:
+        source = manifest.source
+        existing = await self._session.get(Source, source_id)
+        expected = {
+            "key": source.key,
+            "name": source.name,
+            "base_url": source.base_url,
+            "reliability": Decimal(str(source.reliability)),
+            "licensing_notes": source.licensing_notes,
+        }
+        if existing is None:
+            self._session.add(
+                Source(
+                    id=source_id,
+                    key=source.key,
+                    name=source.name,
+                    base_url=source.base_url,
+                    reliability=Decimal(str(source.reliability)),
+                    licensing_notes=source.licensing_notes,
+                    terms_reviewed_at=None,
+                )
+            )
+            summary.mark(existed=False)
+            return
+        self._assert_fields(f"source:{source.key}", existing, expected, summary)
+        summary.mark(existed=True)
+
+    async def _persist_source_config(
+        self,
+        source_id: UUID,
+        manifest: HistoricalEvidenceManifest,
+        summary: ImportSummary,
+    ) -> None:
+        source = manifest.source
+        existing = await self._session.get(SourceConfigRecord, source_id)
+        expected = {
+            "source_kind": source.kind.value,
+            "parser_version": source.parser_version,
+            "collector_version": source.collector_version,
+            "request_policy": source.request_policy.model_dump(mode="json"),
+            "terms_status": source.terms_status.value,
+            "commercial_use_approved": source.commercial_use_approved,
+            "robots_notes": source.robots_notes,
+            "enabled": source.enabled,
+        }
+        if existing is None:
+            self._session.add(
+                SourceConfigRecord(
+                    source_id=source_id,
+                    source_kind=source.kind.value,
+                    parser_version=source.parser_version,
+                    collector_version=source.collector_version,
+                    request_policy=source.request_policy.model_dump(mode="json"),
+                    terms_status=source.terms_status.value,
+                    commercial_use_approved=source.commercial_use_approved,
+                    robots_notes=source.robots_notes,
+                    enabled=source.enabled,
+                )
+            )
+            summary.mark(existed=False)
+            return
+        self._assert_fields(
+            f"source_config:{source.key}",
+            existing,
+            expected,
+            summary,
+        )
+        summary.mark(existed=True)
+
+    async def _persist_collector_run(
+        self,
+        source_id: UUID,
+        run_id: UUID,
+        manifest: HistoricalEvidenceManifest,
+        summary: ImportSummary,
+    ) -> None:
+        existing = await self._session.get(CollectorRunRecord, run_id)
+        expected = {
+            "source_id": source_id,
+            "run_key": manifest.run_key,
+            "started_at": manifest.started_at.astimezone(UTC),
+            "finished_at": manifest.finished_at.astimezone(UTC),
+            "status": CollectorRunStatus.SUCCEEDED.value,
+            "records_count": len(manifest.records),
+            "parser_version": manifest.source.parser_version,
+            "collector_version": manifest.source.collector_version,
+            "failure_kind": None,
+            "error_message": None,
+        }
+        if existing is None:
+            self._session.add(
+                CollectorRunRecord(
+                    run_id=run_id,
+                    source_id=source_id,
+                    run_key=manifest.run_key,
+                    started_at=manifest.started_at.astimezone(UTC),
+                    finished_at=manifest.finished_at.astimezone(UTC),
+                    status=CollectorRunStatus.SUCCEEDED.value,
+                    records_count=len(manifest.records),
+                    parser_version=manifest.source.parser_version,
+                    collector_version=manifest.source.collector_version,
+                    failure_kind=None,
+                    error_message=None,
+                )
+            )
+            summary.mark(existed=False)
+            return
+        self._assert_fields(
+            f"collector_run:{manifest.source.key}:{manifest.run_key}",
+            existing,
+            expected,
+            summary,
+        )
+        summary.mark(existed=True)
+
+    async def _persist_raw_record(
+        self,
+        source_id: UUID,
+        run_id: UUID,
+        record_id: UUID,
+        manifest: HistoricalEvidenceManifest,
+        record: HistoricalEvidenceRecord,
+        summary: ImportSummary,
+    ) -> None:
+        existing = await self._session.get(RawSourceRecord, record_id)
+        expected = {
+            "source_id": source_id,
+            "collector_run_id": run_id,
+            "evidence_key": record.evidence_key,
+            "source_entity_id": record.source_entity_id,
+            "observed_at": record.observed_at.astimezone(UTC),
+            "fetched_at": record.fetched_at.astimezone(UTC),
+            "canonical_url": record.canonical_url,
+            "media_type": record.media_type,
+            "content_sha256": record.content_sha256,
+            "raw_object_key": record.raw_object_key,
+            "parser_version": manifest.source.parser_version,
+            "collector_version": manifest.source.collector_version,
+            "request_context": record.request_context,
+            "verification_state": record.verification_state.value,
+        }
+        if existing is None:
+            self._session.add(
+                RawSourceRecord(
+                    record_id=record_id,
+                    source_id=source_id,
+                    collector_run_id=run_id,
+                    evidence_key=record.evidence_key,
+                    source_entity_id=record.source_entity_id,
+                    observed_at=record.observed_at.astimezone(UTC),
+                    fetched_at=record.fetched_at.astimezone(UTC),
+                    canonical_url=record.canonical_url,
+                    media_type=record.media_type,
+                    content_sha256=record.content_sha256,
+                    raw_object_key=record.raw_object_key,
+                    parser_version=manifest.source.parser_version,
+                    collector_version=manifest.source.collector_version,
+                    request_context=record.request_context,
+                    verification_state=record.verification_state.value,
+                )
+            )
+            summary.mark(existed=False)
+            return
+        self._assert_fields(
+            f"raw_evidence:{manifest.source.key}:{record.evidence_key}",
+            existing,
+            expected,
+            summary,
+        )
+        summary.mark(existed=True)
+
     async def _persist_history(
         self,
         history: LoadedHistoricalSeason,
         summary: ImportSummary,
+        *,
+        evidence_bindings: EvidenceBindingMap,
     ) -> None:
         season_id = canonical_id(
             "season",
@@ -341,6 +590,11 @@ class CanonicalHistoryWriter:
                     "match_revision",
                     f"{timeline.fixture_key}:{observation.revision}",
                 )
+                binding = evidence_bindings.get(
+                    (timeline.fixture_key, observation.revision)
+                )
+                source_id = binding[0] if binding is not None else None
+                raw_record_id = binding[1] if binding is not None else None
                 existing_revision = await self._session.get(
                     MatchRevisionRecord,
                     revision_id,
@@ -354,8 +608,6 @@ class CanonicalHistoryWriter:
                     "status": observation.status.value,
                     "home_score": observation.home_score,
                     "away_score": observation.away_score,
-                    "source_id": None,
-                    "raw_record_id": None,
                     "reason": observation.reason,
                 }
                 if existing_revision is None:
@@ -370,8 +622,8 @@ class CanonicalHistoryWriter:
                             status=observation.status.value,
                             home_score=observation.home_score,
                             away_score=observation.away_score,
-                            source_id=None,
-                            raw_record_id=None,
+                            source_id=source_id,
+                            raw_record_id=raw_record_id,
                             reason=observation.reason,
                         )
                     )
@@ -381,6 +633,14 @@ class CanonicalHistoryWriter:
                         f"match_revision:{timeline.fixture_key}:{observation.revision}",
                         existing_revision,
                         expected_revision,
+                        summary,
+                    )
+                    self._bind_existing_revision_evidence(
+                        existing_revision,
+                        source_id,
+                        raw_record_id,
+                        timeline.fixture_key,
+                        observation.revision,
                         summary,
                     )
                     summary.mark(existed=True)
@@ -400,6 +660,35 @@ class CanonicalHistoryWriter:
                 match.status = latest.status.value
                 match.home_score = latest.home_score
                 match.away_score = latest.away_score
+
+    def _bind_existing_revision_evidence(
+        self,
+        revision: MatchRevisionRecord,
+        source_id: UUID | None,
+        raw_record_id: UUID | None,
+        fixture_key: str,
+        revision_number: int,
+        summary: ImportSummary,
+    ) -> None:
+        if source_id is None and raw_record_id is None:
+            return
+        if source_id is None or raw_record_id is None:
+            summary.mark_conflict()
+            raise CanonicalImportConflict(
+                "evidence binding must contain both source_id and raw_record_id",
+                summary=summary,
+            )
+        if revision.source_id is None and revision.raw_record_id is None:
+            revision.source_id = source_id
+            revision.raw_record_id = raw_record_id
+            return
+        if revision.source_id != source_id or revision.raw_record_id != raw_record_id:
+            summary.mark_conflict()
+            raise CanonicalImportConflict(
+                "conflicting evidence binding for "
+                f"match_revision:{fixture_key}:{revision_number}",
+                summary=summary,
+            )
 
     @staticmethod
     def _optional_competition_id(key: str | None) -> UUID | None:
