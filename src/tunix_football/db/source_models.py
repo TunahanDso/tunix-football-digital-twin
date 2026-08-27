@@ -43,6 +43,11 @@ class SourceConfigRecord(CreatedAtMixin, Base):
 class CollectorRunRecord(CreatedAtMixin, Base):
     __tablename__ = "collector_runs"
     __table_args__ = (
+        UniqueConstraint(
+            "source_id",
+            "run_key",
+            name="uq_collector_runs_source_run_key",
+        ),
         CheckConstraint("records_count >= 0", name="records_count_nonnegative"),
         Index("ix_collector_runs_source_started", "source_id", "started_at"),
     )
@@ -53,6 +58,7 @@ class CollectorRunRecord(CreatedAtMixin, Base):
         ForeignKey("sources.id", ondelete="RESTRICT"),
         nullable=False,
     )
+    run_key: Mapped[str | None] = mapped_column(String(160))
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     status: Mapped[str] = mapped_column(String(24), nullable=False)
