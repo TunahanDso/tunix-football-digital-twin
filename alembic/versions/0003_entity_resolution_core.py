@@ -93,7 +93,7 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(
             ["resolved_entity_id"],
             ["canonical_entities.id"],
-            name="fk_entity_resolution_decisions_resolved_entity_id_canonical_entities",
+            name="fk_resolution_decisions_resolved_entity",
             ondelete="SET NULL",
         ),
         sa.ForeignKeyConstraint(
@@ -127,7 +127,7 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(
             ["decision_id"],
             ["entity_resolution_decisions.decision_id"],
-            name="fk_entity_resolution_review_cases_decision_id_entity_resolution_decisions",
+            name="fk_resolution_review_cases_decision",
             ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("case_id", name="pk_entity_resolution_review_cases"),
