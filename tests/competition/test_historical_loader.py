@@ -9,7 +9,9 @@ import pytest
 from tunix_football.competition.contracts import FixtureStatus
 from tunix_football.competition.loader import (
     CompetitionSeedError,
+    FixtureTimeline,
     HistoricalCompetitionLoader,
+    LoadedHistoricalSeason,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -17,9 +19,8 @@ SEED_PATH = ROOT / "data/competitions/tr_super_lig_2024_25.json"
 FIXTURE_PATH = ROOT / "data/fixtures/tr_super_lig_2024_25_history_sample.json"
 
 
-def _timeline(season: object, fixture_key: str) -> object:
-    fixtures = getattr(season, "fixtures")
-    return next(item for item in fixtures if item.fixture_key == fixture_key)
+def _timeline(season: LoadedHistoricalSeason, fixture_key: str) -> FixtureTimeline:
+    return next(item for item in season.fixtures if item.fixture_key == fixture_key)
 
 
 def test_super_lig_seed_is_data_driven() -> None:
