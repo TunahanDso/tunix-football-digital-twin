@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from math import log
 from random import Random
 from statistics import fmean
-from typing import Iterable, Sequence
 
 from tunix_football.modeling.types import OutcomeProbabilities, Prediction, Scoreline
 
