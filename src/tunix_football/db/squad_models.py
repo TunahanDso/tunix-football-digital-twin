@@ -37,12 +37,20 @@ class SquadMembershipRecord(CreatedAtMixin, Base):
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
     player_id: Mapped[UUID] = mapped_column(
         Uuid,
-        ForeignKey("players.entity_id", ondelete="CASCADE"),
+        ForeignKey(
+            "players.entity_id",
+            name="fk_squad_memberships_player_id",
+            ondelete="CASCADE",
+        ),
         nullable=False,
     )
     club_id: Mapped[UUID] = mapped_column(
         Uuid,
-        ForeignKey("clubs.entity_id", ondelete="RESTRICT"),
+        ForeignKey(
+            "clubs.entity_id",
+            name="fk_squad_memberships_club_id",
+            ondelete="RESTRICT",
+        ),
         nullable=False,
     )
     spell_key: Mapped[str] = mapped_column(String(160), nullable=False)
@@ -82,7 +90,11 @@ class SquadMembershipRevisionRecord(CreatedAtMixin, Base):
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
     membership_id: Mapped[UUID] = mapped_column(
         Uuid,
-        ForeignKey("player_squad_memberships.id", ondelete="CASCADE"),
+        ForeignKey(
+            "player_squad_memberships.id",
+            name="fk_squad_membership_revisions_membership_id",
+            ondelete="CASCADE",
+        ),
         nullable=False,
     )
     revision_number: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -94,10 +106,18 @@ class SquadMembershipRevisionRecord(CreatedAtMixin, Base):
     shirt_number: Mapped[int | None] = mapped_column(Integer)
     source_id: Mapped[UUID | None] = mapped_column(
         Uuid,
-        ForeignKey("sources.id", ondelete="SET NULL"),
+        ForeignKey(
+            "sources.id",
+            name="fk_squad_membership_revisions_source_id",
+            ondelete="SET NULL",
+        ),
     )
     raw_record_id: Mapped[UUID | None] = mapped_column(
         Uuid,
-        ForeignKey("raw_source_records.record_id", ondelete="SET NULL"),
+        ForeignKey(
+            "raw_source_records.record_id",
+            name="fk_squad_membership_revisions_raw_record_id",
+            ondelete="SET NULL",
+        ),
     )
     reason: Mapped[str | None] = mapped_column(Text)
