@@ -56,6 +56,16 @@ class CollectorFailureKind(StrEnum):
     UNKNOWN = "unknown"
 
 
+def canonical_json_sha256(payload: dict[str, Any]) -> str:
+    serialized = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+    return hashlib.sha256(serialized).hexdigest()
+
+
 class RequestPolicy(BaseModel):
     requests_per_minute: int = Field(default=30, ge=1)
     max_concurrency: int = Field(default=1, ge=1)
@@ -125,12 +135,6 @@ class SourceRecord(BaseModel):
         request_context: dict[str, Any] | None = None,
         raw_object_key: str | None = None,
     ) -> Self:
-        serialized = json.dumps(
-            payload,
-            sort_keys=True,
-            separators=(",", ":"),
-            ensure_ascii=False,
-        ).encode("utf-8")
         return cls(
             source_key=source_key,
             source_entity_id=source_entity_id,
@@ -138,7 +142,7 @@ class SourceRecord(BaseModel):
             canonical_url=canonical_url,
             media_type=media_type,
             payload=payload,
-            content_sha256=hashlib.sha256(serialized).hexdigest(),
+            content_sha256=canonical_json_sha256(payload),
             parser_version=parser_version,
             collector_version=collector_version,
             request_context=request_context or {},
@@ -147,7 +151,9 @@ class SourceRecord(BaseModel):
 
     @model_validator(mode="after")
     def validate_hash(self) -> Self:
-        if len(self.content_sha256) != 64:
+        if len(self.content_sha256) != 64 or any(
+            char not in "0123456789abcdef" for char in self.content_sha256.lower()
+        ):
             raise ValueError("content_sha256 must be a 64-character SHA-256 hex digest")
         return self
 
