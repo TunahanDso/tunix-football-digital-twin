@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 from tunix_football.db import backtest_models as _backtest_models  # noqa: F401
+from tunix_football.db import competition_models as _competition_models  # noqa: F401
 from tunix_football.db import models as _models  # noqa: F401
 from tunix_football.db import resolution_models as _resolution_models  # noqa: F401
 from tunix_football.db import source_models as _source_models  # noqa: F401
