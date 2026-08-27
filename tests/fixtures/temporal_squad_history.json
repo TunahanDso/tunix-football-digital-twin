@@ -1,0 +1,109 @@
+{
+  "format_version": 1,
+  "players": [
+    {
+      "key": "future_player",
+      "name": "Future Player",
+      "birth_date": "2001-01-10",
+      "country_code": "TUR"
+    },
+    {
+      "key": "late_player",
+      "name": "Late Player",
+      "birth_date": "2000-02-20",
+      "country_code": "TUR"
+    },
+    {
+      "key": "corrected_player",
+      "name": "Corrected Player",
+      "birth_date": "1999-03-15",
+      "country_code": "TUR"
+    },
+    {
+      "key": "traveler",
+      "name": "Traveler Player",
+      "birth_date": "1998-04-25",
+      "country_code": "TUR"
+    }
+  ],
+  "observations": [
+    {
+      "spell_key": "future-player-galatasaray-2024",
+      "revision": 1,
+      "revision_kind": "initial",
+      "observed_at": "2024-08-25T12:00:00+03:00",
+      "valid_from": "2024-09-01T00:00:00+03:00",
+      "valid_until": null,
+      "player_key": "future_player",
+      "club_key": "galatasaray",
+      "membership_kind": "permanent",
+      "shirt_number": 17,
+      "reason": "Future membership announced before becoming effective"
+    },
+    {
+      "spell_key": "late-player-galatasaray-2024",
+      "revision": 1,
+      "revision_kind": "initial",
+      "observed_at": "2024-08-10T12:00:00+03:00",
+      "valid_from": "2024-08-01T00:00:00+03:00",
+      "valid_until": null,
+      "player_key": "late_player",
+      "club_key": "galatasaray",
+      "membership_kind": "permanent",
+      "shirt_number": 21,
+      "reason": "Membership discovered after it had already started"
+    },
+    {
+      "spell_key": "corrected-player-galatasaray-2024",
+      "revision": 1,
+      "revision_kind": "initial",
+      "observed_at": "2024-08-01T09:00:00+03:00",
+      "valid_from": "2024-08-01T00:00:00+03:00",
+      "valid_until": null,
+      "player_key": "corrected_player",
+      "club_key": "galatasaray",
+      "membership_kind": "permanent",
+      "shirt_number": 8,
+      "reason": "Initially believed to be an open-ended membership"
+    },
+    {
+      "spell_key": "corrected-player-galatasaray-2024",
+      "revision": 2,
+      "revision_kind": "correction",
+      "observed_at": "2024-09-15T10:00:00+03:00",
+      "valid_from": "2024-08-01T00:00:00+03:00",
+      "valid_until": "2024-09-01T00:00:00+03:00",
+      "player_key": "corrected_player",
+      "club_key": "galatasaray",
+      "membership_kind": "permanent",
+      "shirt_number": 8,
+      "reason": "Later evidence corrected the historical end of the spell"
+    },
+    {
+      "spell_key": "traveler-galatasaray-2024",
+      "revision": 1,
+      "revision_kind": "initial",
+      "observed_at": "2024-06-20T12:00:00+03:00",
+      "valid_from": "2024-07-01T00:00:00+03:00",
+      "valid_until": "2024-09-01T00:00:00+03:00",
+      "player_key": "traveler",
+      "club_key": "galatasaray",
+      "membership_kind": "permanent",
+      "shirt_number": 11,
+      "reason": "First club spell"
+    },
+    {
+      "spell_key": "traveler-fenerbahce-2024",
+      "revision": 1,
+      "revision_kind": "initial",
+      "observed_at": "2024-08-20T12:00:00+03:00",
+      "valid_from": "2024-09-01T00:00:00+03:00",
+      "valid_until": null,
+      "player_key": "traveler",
+      "club_key": "fenerbahce",
+      "membership_kind": "permanent",
+      "shirt_number": 19,
+      "reason": "Second club spell for the same canonical player"
+    }
+  ]
+}
