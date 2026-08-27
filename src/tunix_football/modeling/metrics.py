@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from math import log
-from typing import Iterable
+from random import Random
+from statistics import fmean
+from typing import Iterable, Sequence
 
 from tunix_football.modeling.types import OutcomeProbabilities, Prediction, Scoreline
 
@@ -28,6 +30,14 @@ class MatchMetricVector:
     brier_score: float
     ranked_probability_score: float
     score_log_loss: float | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class PairedBootstrapDelta:
+    pairs: int
+    mean_delta: float
+    lower_95: float
+    upper_95: float
 
 
 def log_loss(probabilities: OutcomeProbabilities, outcome_index: int) -> float:
@@ -132,3 +142,37 @@ def expected_calibration_error(calibration: Iterable[CalibrationBin]) -> float:
     if total == 0:
         raise ValueError("calibration bins cannot be empty")
     return sum(item.count * item.absolute_gap for item in items) / total
+
+
+def paired_bootstrap_delta(
+    model_scores: Sequence[float],
+    benchmark_scores: Sequence[float],
+    *,
+    seed: int,
+    samples: int = 1000,
+) -> PairedBootstrapDelta:
+    if len(model_scores) != len(benchmark_scores):
+        raise ValueError("paired bootstrap inputs must have equal length")
+    if not model_scores:
+        raise ValueError("paired bootstrap requires at least one pair")
+    if samples < 100:
+        raise ValueError("paired bootstrap requires at least 100 samples")
+
+    deltas = [
+        model - benchmark
+        for model, benchmark in zip(model_scores, benchmark_scores, strict=True)
+    ]
+    rng = Random(seed)
+    bootstrapped: list[float] = []
+    for _ in range(samples):
+        draw = [deltas[rng.randrange(len(deltas))] for _ in range(len(deltas))]
+        bootstrapped.append(fmean(draw))
+    bootstrapped.sort()
+    lower_index = int((samples - 1) * 0.025)
+    upper_index = int((samples - 1) * 0.975)
+    return PairedBootstrapDelta(
+        pairs=len(deltas),
+        mean_delta=fmean(deltas),
+        lower_95=bootstrapped[lower_index],
+        upper_95=bootstrapped[upper_index],
+    )
