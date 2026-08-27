@@ -30,10 +30,6 @@ class SeasonRuleVersionRecord(CreatedAtMixin, Base):
             name="uq_season_rule_versions_season_version",
         ),
         CheckConstraint("version > 0", name="positive_version"),
-        CheckConstraint(
-            "valid_from <= observed_at",
-            name="valid_before_observed",
-        ),
         Index(
             "ix_season_rule_versions_season_valid",
             "competition_season_id",
