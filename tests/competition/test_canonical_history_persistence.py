@@ -10,7 +10,10 @@ from sqlalchemy import func, select, text
 
 from tunix_football.canonical_ids import canonical_id
 from tunix_football.competition.contracts import CompetitionSeed
-from tunix_football.competition.loader import HistoricalCompetitionLoader
+from tunix_football.competition.loader import (
+    HistoricalCompetitionLoader,
+    LoadedHistoricalSeason,
+)
 from tunix_football.competition.persistence import (
     CanonicalHistoryWriter,
     CanonicalImportConflict,
@@ -36,16 +39,14 @@ FIXTURE_PATH = ROOT / "data/fixtures/tr_super_lig_2024_25_history_sample.json"
 
 @pytest_asyncio.fixture(autouse=True)
 async def clean_canonical_history() -> None:
-    async with SessionFactory() as session:
-        async with session.begin():
-            await session.execute(text("TRUNCATE TABLE canonical_entities CASCADE"))
+    async with SessionFactory() as session, session.begin():
+        await session.execute(text("TRUNCATE TABLE canonical_entities CASCADE"))
     yield
-    async with SessionFactory() as session:
-        async with session.begin():
-            await session.execute(text("TRUNCATE TABLE canonical_entities CASCADE"))
+    async with SessionFactory() as session, session.begin():
+        await session.execute(text("TRUNCATE TABLE canonical_entities CASCADE"))
 
 
-def _dataset() -> tuple[CompetitionSeed, object]:
+def _dataset() -> tuple[CompetitionSeed, LoadedHistoricalSeason]:
     loader = HistoricalCompetitionLoader()
     competition = loader.load_seed(SEED_PATH)
     history = loader.load_fixture_stream(FIXTURE_PATH, competition=competition)
