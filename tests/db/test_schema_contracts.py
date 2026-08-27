@@ -4,8 +4,8 @@ from sqlalchemy import CheckConstraint
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.schema import CreateTable
 
-from tunix_football.db.base import Base
 from tunix_football.db import models as _models  # noqa: F401
+from tunix_football.db.base import Base
 
 
 def _check_names(table_name: str) -> set[str]:
