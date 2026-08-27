@@ -87,15 +87,17 @@ def _names(snapshots: list[object]) -> set[str]:
 
 
 def test_squad_schema_has_temporal_database_guards() -> None:
-    membership_columns = set(Base.metadata.tables["player_squad_memberships"].columns)
+    membership_columns = set(
+        Base.metadata.tables["player_squad_memberships"].columns.keys()
+    )
     revision_table = Base.metadata.tables["player_squad_membership_revisions"]
-    revision_columns = set(revision_table.columns)
+    revision_columns = set(revision_table.columns.keys())
     check_names = {
         constraint.name
         for constraint in revision_table.constraints
         if isinstance(constraint, CheckConstraint)
     }
-    player_columns = set(Base.metadata.tables["players"].columns)
+    player_columns = set(Base.metadata.tables["players"].columns.keys())
 
     assert {"id", "player_id", "club_id", "spell_key"} <= membership_columns
     assert {
