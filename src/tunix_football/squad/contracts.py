@@ -113,7 +113,11 @@ class SquadHistorySeed(BaseModel):
             observed_times = [item.observed_at for item in ordered]
             if any(
                 later <= earlier
-                for earlier, later in zip(observed_times, observed_times[1:])
+                for earlier, later in zip(
+                    observed_times,
+                    observed_times[1:],
+                    strict=False,
+                )
             ):
                 raise ValueError(
                     f"spell {spell_key} observed_at must increase with revision"
