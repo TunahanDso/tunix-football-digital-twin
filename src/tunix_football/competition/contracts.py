@@ -78,6 +78,13 @@ class ClubSeed(BaseModel):
     country_code: str = Field(min_length=3, max_length=3)
 
 
+class CompetitionReferenceSeed(BaseModel):
+    key: str = Field(min_length=1, max_length=80)
+    name: str = Field(min_length=1, max_length=160)
+    country_code: str = Field(min_length=3, max_length=3)
+    competition_type: CompetitionType
+
+
 class SeasonParticipantSeed(BaseModel):
     club_key: str
     entry: ParticipationEntry
@@ -116,6 +123,7 @@ class CompetitionSeed(BaseModel):
     country_code: str = Field(min_length=3, max_length=3)
     competition_type: CompetitionType
     timezone: str
+    related_competitions: list[CompetitionReferenceSeed] = Field(default_factory=list)
     clubs: list[ClubSeed]
     seasons: list[SeasonSeed]
 
@@ -133,14 +141,36 @@ class CompetitionSeed(BaseModel):
         season_keys = [season.key for season in self.seasons]
         if len(set(season_keys)) != len(season_keys):
             raise ValueError("season seed keys must be unique")
+
+        related_keys = [item.key for item in self.related_competitions]
+        if self.key in related_keys or len(set(related_keys)) != len(related_keys):
+            raise ValueError("related competition keys must be unique and external")
+        known_competitions = {self.key, *related_keys}
+
         for season in self.seasons:
-            missing = {
+            missing_clubs = {
                 participant.club_key
                 for participant in season.participants
                 if participant.club_key not in known_clubs
             }
-            if missing:
-                raise ValueError(f"season references unknown clubs: {sorted(missing)}")
+            if missing_clubs:
+                raise ValueError(
+                    f"season references unknown clubs: {sorted(missing_clubs)}"
+                )
+            missing_competitions = {
+                key
+                for participant in season.participants
+                for key in (
+                    participant.from_competition_key,
+                    participant.to_competition_key,
+                )
+                if key is not None and key not in known_competitions
+            }
+            if missing_competitions:
+                raise ValueError(
+                    "season references unknown competitions: "
+                    f"{sorted(missing_competitions)}"
+                )
         return self
 
 
