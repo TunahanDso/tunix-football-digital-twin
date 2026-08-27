@@ -14,6 +14,7 @@ from tunix_football.db.squad_models import (
     SquadMembershipRevisionRecord,
 )
 from tunix_football.squad.contracts import (
+    PlayerSeed,
     SquadHistorySeed,
     SquadMembershipObservation,
 )
@@ -51,7 +52,7 @@ class SquadHistoryWriter:
         summary = SquadImportSummary()
         async with self._session.begin():
             for player in seed.players:
-                await self._persist_player(player.key, player, summary)
+                await self._persist_player(player, summary)
             await self._session.flush()
 
             first_by_spell: dict[str, SquadMembershipObservation] = {}
@@ -74,30 +75,29 @@ class SquadHistoryWriter:
 
     async def _persist_player(
         self,
-        player_key: str,
-        player: object,
+        player: PlayerSeed,
         summary: SquadImportSummary,
     ) -> None:
-        player_id = canonical_id("player", player_key)
+        player_id = canonical_id("player", player.key)
         await self._persist_entity(player_id, "player", summary)
         existing = await self._session.get(Player, player_id)
         expected = {
-            "canonical_name": getattr(player, "name"),
-            "birth_date": getattr(player, "birth_date"),
-            "country_code": getattr(player, "country_code"),
+            "canonical_name": player.name,
+            "birth_date": player.birth_date,
+            "country_code": player.country_code,
         }
         if existing is None:
             self._session.add(
                 Player(
                     entity_id=player_id,
-                    canonical_name=getattr(player, "name"),
-                    birth_date=getattr(player, "birth_date"),
-                    country_code=getattr(player, "country_code"),
+                    canonical_name=player.name,
+                    birth_date=player.birth_date,
+                    country_code=player.country_code,
                 )
             )
             summary.mark(existed=False)
             return
-        self._assert_fields(f"player:{player_key}", existing, expected, summary)
+        self._assert_fields(f"player:{player.key}", existing, expected, summary)
         summary.mark(existed=True)
 
     async def _persist_entity(
