@@ -12,7 +12,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from tunix_football.canonical_ids import canonical_id
 from tunix_football.collectors.types import CollectorRunStatus
 from tunix_football.competition.contracts import CompetitionSeed, SeasonSeed
-from tunix_football.competition.evidence import HistoricalEvidenceManifest
+from tunix_football.competition.evidence import (
+    HistoricalEvidenceManifest,
+    HistoricalEvidenceRecord,
+)
 from tunix_football.competition.loader import LoadedHistoricalSeason
 from tunix_football.db.competition_models import (
     MatchRevisionRecord,
@@ -324,7 +327,7 @@ class CanonicalHistoryWriter:
     async def _persist_evidence(
         self,
         manifest: HistoricalEvidenceManifest,
-        records_by_observation: dict[tuple[str, int], object],
+        records_by_observation: dict[tuple[str, int], HistoricalEvidenceRecord],
         summary: ImportSummary,
     ) -> EvidenceBindingMap:
         source_id = canonical_id("source", manifest.source.key)
@@ -446,6 +449,7 @@ class CanonicalHistoryWriter:
         existing = await self._session.get(CollectorRunRecord, run_id)
         expected = {
             "source_id": source_id,
+            "run_key": manifest.run_key,
             "started_at": manifest.started_at.astimezone(UTC),
             "finished_at": manifest.finished_at.astimezone(UTC),
             "status": CollectorRunStatus.SUCCEEDED.value,
@@ -460,6 +464,7 @@ class CanonicalHistoryWriter:
                 CollectorRunRecord(
                     run_id=run_id,
                     source_id=source_id,
+                    run_key=manifest.run_key,
                     started_at=manifest.started_at.astimezone(UTC),
                     finished_at=manifest.finished_at.astimezone(UTC),
                     status=CollectorRunStatus.SUCCEEDED.value,
@@ -486,7 +491,7 @@ class CanonicalHistoryWriter:
         run_id: UUID,
         record_id: UUID,
         manifest: HistoricalEvidenceManifest,
-        record: Any,
+        record: HistoricalEvidenceRecord,
         summary: ImportSummary,
     ) -> None:
         existing = await self._session.get(RawSourceRecord, record_id)
