@@ -27,13 +27,13 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(
             ["club_id"],
             ["clubs.entity_id"],
-            name="fk_player_squad_memberships_club_id_clubs",
+            name="fk_squad_memberships_club_id",
             ondelete="RESTRICT",
         ),
         sa.ForeignKeyConstraint(
             ["player_id"],
             ["players.entity_id"],
-            name="fk_player_squad_memberships_player_id_players",
+            name="fk_squad_memberships_player_id",
             ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id", name="pk_player_squad_memberships"),
@@ -85,25 +85,19 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(
             ["membership_id"],
             ["player_squad_memberships.id"],
-            name=(
-                "fk_player_squad_membership_revisions_membership_id_"
-                "player_squad_memberships"
-            ),
+            name="fk_squad_membership_revisions_membership_id",
             ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
             ["raw_record_id"],
             ["raw_source_records.record_id"],
-            name=(
-                "fk_player_squad_membership_revisions_raw_record_id_"
-                "raw_source_records"
-            ),
+            name="fk_squad_membership_revisions_raw_record_id",
             ondelete="SET NULL",
         ),
         sa.ForeignKeyConstraint(
             ["source_id"],
             ["sources.id"],
-            name="fk_player_squad_membership_revisions_source_id_sources",
+            name="fk_squad_membership_revisions_source_id",
             ondelete="SET NULL",
         ),
         sa.PrimaryKeyConstraint(
