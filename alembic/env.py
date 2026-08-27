@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 from tunix_football.db import models as _models  # noqa: F401
+from tunix_football.db import source_models as _source_models  # noqa: F401
 from tunix_football.db.base import Base
 
 config = context.config
