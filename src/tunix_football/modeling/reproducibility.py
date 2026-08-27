@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Iterable
 from dataclasses import asdict, is_dataclass
 from datetime import date, datetime
 from enum import Enum
-from typing import Any, Iterable
+from typing import Any
 from uuid import UUID
 
 from tunix_football.modeling.types import HistoricalMatch
