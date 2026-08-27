@@ -1,0 +1,159 @@
+{
+  "format_version": 1,
+  "source": {
+    "key": "tunix_curated_tff_archive",
+    "name": "TUNIX Curated TFF Historical Archive",
+    "kind": "historical",
+    "base_url": "https://www.tff.org/",
+    "reliability": 0.95,
+    "parser_version": "historical-evidence-v1",
+    "collector_version": "manual-archive-v1",
+    "terms_status": "unreviewed",
+    "commercial_use_approved": false,
+    "licensing_notes": "Retrospectively curated research evidence. Upstream TFF references are retained, but this manifest is not represented as an archive of original upstream bytes.",
+    "robots_notes": null,
+    "enabled": true
+  },
+  "run_key": "super-lig-2024-25-history-sample-v1",
+  "started_at": "2026-08-27T14:59:00+03:00",
+  "finished_at": "2026-08-27T15:10:00+03:00",
+  "records": [
+    {
+      "evidence_key": "fixture-announcement-2024-07-11",
+      "observed_at": "2024-07-11T16:00:00+03:00",
+      "fetched_at": "2026-08-27T15:00:00+03:00",
+      "canonical_url": "https://www.tff.org/Default.aspx?pageId=1730",
+      "media_type": "application/vnd.tunix.football-evidence+json",
+      "payload": {
+        "assertion": "The 2024-25 Super Lig fixture included Galatasaray-Hatayspor in week 1 and Galatasaray-Gaziantep in week 3.",
+        "provenance_mode": "retrospective-curation",
+        "upstream_authority": "Türkiye Futbol Federasyonu"
+      },
+      "request_context": {"mode": "manual-historical-reconstruction"},
+      "verification_state": "corroborated",
+      "observations": [
+        {"fixture_key": "2024-25-galatasaray-hatayspor-01", "revision": 1},
+        {"fixture_key": "2024-25-galatasaray-gaziantep-03", "revision": 1}
+      ]
+    },
+    {
+      "evidence_key": "galatasaray-hatayspor-final-2024-08-09",
+      "observed_at": "2024-08-09T23:10:00+03:00",
+      "fetched_at": "2026-08-27T15:01:00+03:00",
+      "canonical_url": "https://www.tff.org/Default.aspx?pageId=1730",
+      "media_type": "application/vnd.tunix.football-evidence+json",
+      "payload": {
+        "assertion": "Galatasaray defeated Hatayspor 2-1.",
+        "provenance_mode": "retrospective-curation",
+        "upstream_authority": "Türkiye Futbol Federasyonu"
+      },
+      "request_context": {"mode": "manual-historical-reconstruction"},
+      "verification_state": "corroborated",
+      "observations": [
+        {"fixture_key": "2024-25-galatasaray-hatayspor-01", "revision": 2}
+      ]
+    },
+    {
+      "evidence_key": "galatasaray-gaziantep-postponement-2024-08-16",
+      "observed_at": "2024-08-16T18:00:00+03:00",
+      "fetched_at": "2026-08-27T15:02:00+03:00",
+      "canonical_url": "https://www.tff.org/default.aspx?ftxtID=45077&pageID=687",
+      "media_type": "application/vnd.tunix.football-evidence+json",
+      "payload": {
+        "assertion": "TFF postponed the week-three Galatasaray-Gaziantep fixture because of UEFA play-off scheduling.",
+        "provenance_mode": "retrospective-curation",
+        "upstream_authority": "Türkiye Futbol Federasyonu"
+      },
+      "request_context": {"mode": "manual-historical-reconstruction"},
+      "verification_state": "corroborated",
+      "observations": [
+        {"fixture_key": "2024-25-galatasaray-gaziantep-03", "revision": 2}
+      ]
+    },
+    {
+      "evidence_key": "galatasaray-gaziantep-reschedule-2024-09-04",
+      "observed_at": "2024-09-04T16:00:00+03:00",
+      "fetched_at": "2026-08-27T15:03:00+03:00",
+      "canonical_url": "https://www.tff.org/Default.aspx?pageId=1730",
+      "media_type": "application/vnd.tunix.football-evidence+json",
+      "payload": {
+        "assertion": "The postponed Galatasaray-Gaziantep fixture was assigned to 17 September 2024 at 20:00 local time.",
+        "provenance_mode": "retrospective-curation",
+        "upstream_authority": "Türkiye Futbol Federasyonu"
+      },
+      "request_context": {"mode": "manual-historical-reconstruction"},
+      "verification_state": "corroborated",
+      "observations": [
+        {"fixture_key": "2024-25-galatasaray-gaziantep-03", "revision": 3}
+      ]
+    },
+    {
+      "evidence_key": "galatasaray-gaziantep-final-2024-09-17",
+      "observed_at": "2024-09-17T22:10:00+03:00",
+      "fetched_at": "2026-08-27T15:04:00+03:00",
+      "canonical_url": "https://www.tff.org/Default.aspx?pageId=1730",
+      "media_type": "application/vnd.tunix.football-evidence+json",
+      "payload": {
+        "assertion": "Galatasaray defeated Gaziantep FK 3-1 after the rescheduled fixture was played.",
+        "provenance_mode": "retrospective-curation",
+        "upstream_authority": "Türkiye Futbol Federasyonu"
+      },
+      "request_context": {"mode": "manual-historical-reconstruction"},
+      "verification_state": "corroborated",
+      "observations": [
+        {"fixture_key": "2024-25-galatasaray-gaziantep-03", "revision": 4}
+      ]
+    },
+    {
+      "evidence_key": "galatasaray-adana-demirspor-schedule-2025-01-29",
+      "observed_at": "2025-01-29T16:00:00+03:00",
+      "fetched_at": "2026-08-27T15:05:00+03:00",
+      "canonical_url": "https://www.tff.org/Default.aspx?macId=264193&pageID=29",
+      "media_type": "application/vnd.tunix.football-evidence+json",
+      "payload": {
+        "assertion": "Galatasaray-Adana Demirspor was registered for 9 February 2025 at 19:00 local time.",
+        "provenance_mode": "retrospective-curation",
+        "upstream_authority": "Türkiye Futbol Federasyonu"
+      },
+      "request_context": {"mode": "manual-historical-reconstruction"},
+      "verification_state": "corroborated",
+      "observations": [
+        {"fixture_key": "2024-25-galatasaray-adana-demirspor-23", "revision": 1}
+      ]
+    },
+    {
+      "evidence_key": "galatasaray-adana-demirspor-abandonment-2025-02-09",
+      "observed_at": "2025-02-09T20:05:00+03:00",
+      "fetched_at": "2026-08-27T15:06:00+03:00",
+      "canonical_url": "https://www.tff.org/Default.aspx?macId=264193&pageID=29",
+      "media_type": "application/vnd.tunix.football-evidence+json",
+      "payload": {
+        "assertion": "The Galatasaray-Adana Demirspor match was abandoned after Adana Demirspor left the field with the score 1-0.",
+        "provenance_mode": "retrospective-curation",
+        "upstream_authority": "Türkiye Futbol Federasyonu"
+      },
+      "request_context": {"mode": "manual-historical-reconstruction"},
+      "verification_state": "corroborated",
+      "observations": [
+        {"fixture_key": "2024-25-galatasaray-adana-demirspor-23", "revision": 2}
+      ]
+    },
+    {
+      "evidence_key": "pfdk-galatasaray-adana-demirspor-award-2025-02-13",
+      "observed_at": "2025-02-13T18:00:00+03:00",
+      "fetched_at": "2026-08-27T15:07:00+03:00",
+      "canonical_url": "https://www.tff.org/default.aspx?ftxtID=46746&pageID=246",
+      "media_type": "application/vnd.tunix.football-evidence+json",
+      "payload": {
+        "assertion": "TFF/PFDK awarded Galatasaray a 3-0 forfeit result after the abandoned Adana Demirspor match.",
+        "provenance_mode": "retrospective-curation",
+        "upstream_authority": "Türkiye Futbol Federasyonu"
+      },
+      "request_context": {"mode": "manual-historical-reconstruction"},
+      "verification_state": "corroborated",
+      "observations": [
+        {"fixture_key": "2024-25-galatasaray-adana-demirspor-23", "revision": 3}
+      ]
+    }
+  ]
+}
