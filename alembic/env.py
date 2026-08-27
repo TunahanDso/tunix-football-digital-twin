@@ -14,6 +14,7 @@ from tunix_football.db import competition_models as _competition_models  # noqa:
 from tunix_football.db import models as _models  # noqa: F401
 from tunix_football.db import resolution_models as _resolution_models  # noqa: F401
 from tunix_football.db import source_models as _source_models  # noqa: F401
+from tunix_football.db import squad_models as _squad_models  # noqa: F401
 from tunix_football.db.base import Base
 
 config = context.config
