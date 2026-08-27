@@ -3,7 +3,6 @@ from __future__ import annotations
 from tunix_football.resolution.normalization import normalize_name
 from tunix_football.resolution.scoring import CandidateScorer, SimilarityScorer
 from tunix_football.resolution.types import (
-    CandidateScore,
     CanonicalCandidate,
     ResolutionMethod,
     ResolutionRequest,
