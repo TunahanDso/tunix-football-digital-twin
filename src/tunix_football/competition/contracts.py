@@ -90,6 +90,8 @@ class SeasonSeed(BaseModel):
     key: str
     starts_on: date
     ends_on: date
+    rules_valid_from: datetime
+    rules_observed_at: datetime
     rules: SeasonRules
     participants: list[SeasonParticipantSeed]
 
@@ -97,6 +99,10 @@ class SeasonSeed(BaseModel):
     def validate_season(self) -> SeasonSeed:
         if self.ends_on <= self.starts_on:
             raise ValueError("season ends_on must be after starts_on")
+        if self.rules_valid_from.tzinfo is None:
+            raise ValueError("rules_valid_from must be timezone-aware")
+        if self.rules_observed_at.tzinfo is None:
+            raise ValueError("rules_observed_at must be timezone-aware")
         participant_keys = [item.club_key for item in self.participants]
         if len(set(participant_keys)) != len(participant_keys):
             raise ValueError("season participants must be unique")
