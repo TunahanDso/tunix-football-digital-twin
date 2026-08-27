@@ -25,7 +25,7 @@ from tunix_football.squad.contracts import (
 )
 from tunix_football.squad.loader import load_squad_history
 from tunix_football.squad.persistence import SquadHistoryWriter, SquadImportConflict
-from tunix_football.squad.query import SquadQuery
+from tunix_football.squad.query import SquadMemberSnapshot, SquadQuery
 
 ROOT = Path(__file__).resolve().parents[2]
 SQUAD_PATH = ROOT / "tests/fixtures/temporal_squad_history.json"
@@ -82,8 +82,8 @@ def _seed() -> SquadHistorySeed:
     return load_squad_history(SQUAD_PATH)
 
 
-def _names(snapshots: list[object]) -> set[str]:
-    return {str(getattr(snapshot, "player_name")) for snapshot in snapshots}
+def _names(snapshots: list[SquadMemberSnapshot]) -> set[str]:
+    return {snapshot.player_name for snapshot in snapshots}
 
 
 def test_squad_schema_has_temporal_database_guards() -> None:
