@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
@@ -7,7 +7,7 @@ from tunix_football.events.base import FootballEvent, FootballEventType
 
 
 def test_event_accepts_valid_temporal_window() -> None:
-    start = datetime(2026, 8, 27, 12, 0, tzinfo=timezone.utc)
+    start = datetime(2026, 8, 27, 12, 0, tzinfo=UTC)
     event = FootballEvent(
         event_type=FootballEventType.PLAYER_TRANSFERRED,
         entity_id=uuid4(),
@@ -24,7 +24,7 @@ def test_event_accepts_valid_temporal_window() -> None:
 
 
 def test_event_rejects_invalid_validity_window() -> None:
-    start = datetime(2026, 8, 27, 12, 0, tzinfo=timezone.utc)
+    start = datetime(2026, 8, 27, 12, 0, tzinfo=UTC)
 
     with pytest.raises(ValueError, match="valid_until"):
         FootballEvent(
